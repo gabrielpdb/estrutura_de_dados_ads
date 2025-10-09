@@ -147,6 +147,8 @@ int __cdecl main(int argc, char **argv){
 		   if(pacote.method == 2) {
 		   		system("cls");
 		   		printf("Fila de impressao:\n\n");
+		   		
+		   		bool vazia = true;
 		   	
 		    	while(1) {
 		    		struct Pacote recebido;
@@ -160,11 +162,18 @@ int __cdecl main(int argc, char **argv){
 						break;
 					}
 					
+					vazia = false;
+					
 					printf("Nome: %s\n", recebido.nome);
 					printf("Mensagem: %s\n", recebido.info);
 					printf("Data: %s\n", recebido.timestamp);
 					printf("------------------\n");
 				}
+				
+				if(vazia) {
+					printf("[Vazia]\n\n");
+				}
+				
 		    	system("pause");	
 			}
 		}

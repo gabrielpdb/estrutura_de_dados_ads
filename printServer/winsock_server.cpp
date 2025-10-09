@@ -43,6 +43,8 @@ int tamanho(Fila *f);
 void inserir(Fila *f, Impressao impressao);
 void mostrarLista(Fila *f);
 void mostraImpressao(Impressao *i);
+void salvarArquivo(Fila *f);
+void liberaFila(Fila *f);
 
 int __cdecl main(void) {
 	system("cls");
@@ -159,8 +161,12 @@ int __cdecl main(void) {
 				
 				inserir(Fila, novaImpressao);
 				
+				if(tamanho(Fila) == limiteFila) {
+					salvarArquivo(Fila);
+				}
 				
-				printf("Espaco na fila: %d/%d\n", Fila->tamanho, limiteFila);
+				system("cls");
+				printf("Fila de impressao: %d/%d\n", Fila->tamanho, limiteFila);
 			} else if (pacote.method == 2) { // METODO LISTAR
 				system("cls");
 				mostrarLista(Fila);
@@ -275,4 +281,37 @@ void mostrarLista(Fila *f) {
 			i = i->prox;
 		}
 	}
+}
+
+void salvarArquivo(Fila *f){
+	FILE *fp = fopen("impressora.txt", "a");
+	if(fp == NULL) {
+		perror("Erro ao abrir arquivo de impressao");
+		return;
+	}
+	
+	Impressao *atual = f->inicio;
+	
+	while(atual != NULL) {
+		fprintf(fp, "%s;%s;%s\n", atual->nome, atual->info, atual->timestamp);
+		
+		atual = atual->prox;
+	}
+	
+	fclose(fp);
+	liberaFila(f);
+}
+
+void liberaFila(Fila *f) {
+	Impressao *atual = f->inicio;
+	
+	while(atual != NULL){
+		Impressao *temp = atual->prox;
+		free(atual);
+		atual = temp;
+	}
+	
+	f->inicio = NULL;
+	f->fim = NULL;
+	f->tamanho = 0;
 }
