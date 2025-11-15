@@ -3,6 +3,30 @@
 #include <string.h>
 #include <stdbool.h>
 
+typedef enum {
+    BLOCK,
+    PAREN,   
+    BRACKET, 
+    FOR,     
+    WHILE,
+    IF,
+    FUNCTION
+} ScopeType;
+
+typedef struct {
+	ScopeType type;
+	int line;
+} Scope;
+
+typedef struct Node {
+	Scope data;
+	Node *next;
+}
+
+typedef struct {
+	Node *first;
+} Stack;
+
 // Ler arquivo de exemplos
 char *read_file(const char *path) {
 	// Abre arquivo em modo binário de leitura
@@ -24,6 +48,27 @@ char *read_file(const char *path) {
 	
 	fclose(f);
 	return buffer;
+}
+
+// Recebe uma string e retorna se ela é vazia. Para linhas em branco
+bool is_blank(const char *s) {
+    while (*s) {
+        if (*s != ' ' && *s != '\t' && *s != '\r')
+            return false; // Não vazia
+        s++;
+    }
+    return true; // Vazia
+}
+
+// Recebe uma linha e verifica se tem // no início
+bool is_comment_at_start(const char *s) {
+    if(s == NULL) return false;
+    
+    // Procura por // e guarda a posição
+    char *p = strstr(s, "//");
+    
+    // Se a posição de p for s (início), true, senão, false
+    return (p == s);
 }
 
 // Recebe a string do arquivo e quebra cada linha no array de strings
@@ -56,57 +101,86 @@ void split_rows(char *src, char ***rows, long * count) {
 	
 }
 
+// Recebe uma string e remove os espaços em branco no início e fim
+void trim_string(char *str) {
+	if (!str || !*str) return; // Se é inválida, sai
+
+    // Remove espaços do fim
+    char *end = str + strlen(str) - 1; // Ponteiro pro fim
+    while (end >= str && *end == ' ')
+        end--; // Recua se encontrar espaço em branco
+    *(end + 1) = '\0'; // Coloca fim no último caracter
+
+    // Remove espaços do início
+    char *start = str; // Ponteiro para o início
+    while (*start == ' ')
+        start++; // Avança se encontrar espaço em branco
+
+	// Se start == str, não tem espaço em branco no início
+	// Se start != str, move str para start, a quantidade de bytes necessária (tamanho de start + \0)
+    if (start != str)
+        memmove(str, start, strlen(start) + 1);
+}
+
+// Recebe o array de strings e passa uma a uma no trim para retirar espaços em branco no início e fim
 void trim_rows(char **rows, int count) {
-	
 	for(int i = 0; i < count; i++) {
 		trim_string(rows[i]);
 	}
 }
 
-void trim_string(char *str) {
-	if (!str || !*str) return;
-
-    // Remove espaços do fim
-    char *end = str + strlen(str) - 1;
-    while (end >= str && *end == ' ')
-        end--;
-    *(end + 1) = '\0';
-
-    // Remove espaços do início
-    char *start = str;
-    while (*start == ' ')
-        start++;
-
-    if (start != str)
-        memmove(str, start, strlen(start) + 1);
-}
-
-void analyze_row(char * row) {
-	bool find = false;
-	printf("%s", row);
-	
-	char *position = strstr(row, "//");
-	
-	if(position != NULL) {
-		find = true;
-	}
-	
-	if(find) {
-		printf("\nACHOU\n");
-	} else {
-		printf("\nNAO ACHOU\n");
-	}
-}
-
+// Exibe todas as linhas do código de uma só vez. Com quebra
 void print_rows(char **rows, int count) {
 	printf("\n");
 	for(int i = 0; i < count; i++) {
-		printf("Linha [%d]:%s\n", i, rows[i]);
+		printf("Linha [%d]:%s\n", i+1, rows[i]);
+	}
+}
+
+void analyze_rows(char **rows, int count) {
+	for(int i = 0; i < count; i++) {
+		if(is_blank(rows[i])) // Se a linha está em branco, pula
+			continue;
+			
+		if(is_comment_at_start(rows[i])) // Se tem // no início, pula
+			continue;
+			
+		printf("Linha [%d]:%s\n", i+1, rows[i]);
+		
+		char *p = rows[i]; // Ponteiro para o início da string
+		char *end = rows[i]; // Ponteiro no início, mas que vai caminhar por cada caracter
+		
+		while(*end != '\0') { // Enquanto não chegar ao fim da linha, continua andando
+			printf("%c\n", *end);
+			
+			
+			
+			if(*end == ' '){ // Quando acha um espaço, pega o token da vez
+				int length = end - p;
+				char token[256];
+				strncpy(token, p, length);
+				token[length] = '\0';
+				
+				printf("%s\n", token);
+				printf("FAZ ALGUMA COISA\n\n");
+				p = end;
+			}
+			
+				
+			
+			end++;
+				trim_string(p);
+		}
+		
+		
+		
+		system("pause");
+		
 	}
 }
 
 
-main()
+int main()
 {
 	char *src = read_file("exemplosTeste.c");
 	if(!src) {
@@ -117,11 +191,9 @@ main()
 	char **rows = NULL;
 	long count = 0;
 	split_rows(src, &rows, &count);
-	print_rows(rows, count);
 	trim_rows(rows, count);
-	print_rows(rows, count);
 	
-	analyze_row(rows[0]);
+	analyze_rows(rows, count);
 	
 	
 	
