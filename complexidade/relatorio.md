@@ -20,6 +20,55 @@
 6. Criar um enum com os tipos de escopo possíveis
    BLOCK, PAREN, BRACKET, FOR, WHILE, IF, FUNCTION
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+void scan_line(const char *line, int lineno) {
+const char *p = line;
+while (*p) {
+// Ignora espaços
+if (*p == ' ' || \*p == '\t') { p++; continue; }
+
+        // Comentário
+        if (*p == '/' && *(p+1) == '/') {
+            printf("Linha %d: TOKEN_COMMENT: %s\n", lineno, p);
+            break; // resto da linha é comentário
+        }
+
+        // Símbolos
+        if (strchr("(){}[];", *p)) {
+            printf("Linha %d: TOKEN_SYMBOL: %c\n", lineno, *p);
+            p++; continue;
+        }
+
+        // Palavra (identificador ou keyword)
+        if (isalpha(*p) || *p == '_') {
+            const char *start = p;
+            while (isalnum(*p) || *p=='_') p++;
+            int len = p - start;
+            char buf[128];
+            strncpy(buf, start, len); buf[len]='\0';
+            // aqui você pode checar se é keyword (for, while, void...)
+            printf("Linha %d: TOKEN_WORD: %s\n", lineno, buf);
+            continue;
+        }
+
+        // Número
+        if (isdigit(*p)) {
+            const char *start = p;
+            while (isdigit(*p)) p++;
+            int len = p - start;
+            char buf[64]; strncpy(buf, start, len); buf[len]='\0';
+            printf("Linha %d: TOKEN_NUMBER: %s\n", lineno, buf);
+            continue;
+        }
+
+        p++; // qualquer outro caractere
+    }
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
 Mano, **você tá exatamente no caminho certo** — isso é literalmente como todo _parser_ simples funciona.
 E o seu projeto pede _exatamente esse tipo de análise estrutural_.
 Então sim, tá **perfeito**.

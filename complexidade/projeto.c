@@ -3,29 +3,75 @@
 #include <string.h>
 #include <stdbool.h>
 
+// Tipos de escopos possíveis
 typedef enum {
-    BLOCK,
-    PAREN,   
-    BRACKET, 
+    BLOCK, //{}
+    PAREN, //()
+    BRACKET, //[]
     FOR,     
     WHILE,
     IF,
     FUNCTION
 } ScopeType;
 
+// O tipo de escopo e a linha de início
 typedef struct {
 	ScopeType type;
 	int line;
 } Scope;
 
+// O nodo da pilha
 typedef struct Node {
-	Scope data;
-	Node *next;
-}
+	Scope info;
+	struct Node *next;
+} Node;
 
+// A pilha. Somente aponta para o primeiro elemento (topo).
 typedef struct {
 	Node *first;
 } Stack;
+
+// Cria uma pilha
+Stack *create_stack() {
+	Stack *s = malloc(sizeof(Stack));
+	s->first = NULL;
+	return s;
+}
+
+// Empilha
+void push(Stack *s, Scope scope) {
+	Node *n = malloc(sizeof(Node)); // Aloca novo nodo
+	n->info = scope; // Dados do escopo
+	n->next = s->first; // Apontador para o início da pilha
+	s->first = n; // Troca o início da pilha para o novo nodo
+}
+
+// Desempilha
+Scope pop(Stack *s) {
+	if (!s->first) { // Verifica se a pilha está vazia ou não
+		printf("Erro: pilha já está vazia");
+		exit(1);
+	}
+	
+	Node *n = s->first; // Auxiliar recebe o primeiro
+	s->first = n->next; // Primeiro passa a ser o segundo
+	Scope scope = n->info; // Salva o escopo que era o primeiro
+	free(n); // Libera auxiliar
+	
+	return scope; // Retorna o escopo que era o primeiro
+}
+
+// Ver topo da pilha
+Scope *peek(Stack *s) {
+	if (!s->first) return NULL; // Se não tem nada, não retorna nada
+	
+	return &s->first->info; // Retorna info do primeiro
+}
+
+// Ver se a pilha está vazia
+bool is_empty(Stack *s) {
+    return s->first == NULL;
+}
 
 // Ler arquivo de exemplos
 char *read_file(const char *path) {
