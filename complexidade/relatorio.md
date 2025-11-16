@@ -10,14 +10,21 @@
    Agora é possível identificar o comando que inicia a linha
 4. Fazer função que identifica linhas em branco como primeiro teste em cada linha a ser analisada (is_blank)
    Quando encontrar linha em branco, avança direto pra próxima
-5. Criar uma pilha que empilhe as aberturas de escopo. Quando encontrar um fechamento de escopo, analisar o que há dentro da pilha até a abertura daquele escopo em específico.
+5. Fazer função que identifica quando a linha começa com comentário //
+   Quando encontrar, avança para a próxima
+6. Agora vamos pegar linha a linha e percorrer ela um caracter por vez testando o seguinte:
+   "({[" -> Abertura de escopo
+   ")}]" -> Fechamento de escopo
+   ";" -> Fim do comando
+   Alfanumérico -> Quando encontra uma letra. Avança um por vez testando se ainda é letra, ou número nesse caso, ou "\_". Esse teste cobre declaração de palavras chave e nomes de variáveis ou funções.
+7. Criar uma pilha que empilhe as aberturas de escopo. Quando encontrar um fechamento de escopo, analisar o que há dentro da pilha até a abertura daquele escopo em específico.
    Exemplo:
    for() { // -> abre o escopo de um for
    if(){} // -> abre e fecha escopo de um if
    for() {} // -> abre e fecha escopo de um for
    } // -> fecha o escopo de um for
    Encontrou fechamento
-6. Criar um enum com os tipos de escopo possíveis
+8. Criar um enum com os tipos de escopo possíveis
    BLOCK, PAREN, BRACKET, FOR, WHILE, IF, FUNCTION
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
