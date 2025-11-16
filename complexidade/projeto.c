@@ -3,6 +3,22 @@
 #include <string.h>
 #include <stdbool.h>
 
+typedef enum { 
+	EOF,
+	KEYWORD,      // for, while, if, void, int, return...
+    IDENTIFIER,   // Nomes de funções, variáveis
+    SYMBOL,       // (, ), {, }, [, ], ;
+    NUMBER,       // Números
+    STRING,       // literais de string
+    COMMENT       // //
+} TokenType;
+
+typedef struct {
+    TokenType type;
+    char *info;   // Conteúdo do token
+    int line;	// Linha do token
+} Token;
+
 // Tipos de escopos possíveis
 typedef enum {
     BLOCK, //{}
@@ -198,24 +214,71 @@ void analyze_rows(char **rows, int count) {
 		
 		while(*end != '\0') { // Enquanto não chegar ao fim da linha, continua andando
 			printf("%c\n", *end);
+			system("pause");
 			
-			
-			
-			if(*end == ' '){ // Quando acha um espaço, pega o token da vez
-				int length = end - p;
-				char token[256];
-				strncpy(token, p, length);
-				token[length] = '\0';
-				
-				printf("%s\n", token);
-				printf("FAZ ALGUMA COISA\n\n");
-				p = end;
+			// Espaços em branco, avança pro próximo
+			if(*end == ' ' || *end == '\t') {
+				end++;
+				continue;
 			}
 			
+			// Abertura de escopo
+			if(strchr("({[", *end)) {
+				printf("Linha %d: TOKEN_SYMBOL: %c\n", i, *end);
+				end++;
+				continue;
+			}
+			
+			// Fechamento de escopo
+			if(strchr(")}]", *end)) {
+				printf("Linha %d: TOKEN_SYMBOL: %c\n", i, *end);
+				end++;
+				continue;
+			}
+			
+			// ;
+			if(strchr(";", *end)) {
+				printf("Linha %d: TOKEN_SYMBOL: %c\n", i, *end);
+				end++;
+				continue;
+			}
+			
+			// Palavra (nome ou keyword)
+			if(isalpha(*end) || *end == '_') {
+				const char *start = end; // Fixa o início no primeiro caracter alfanumérico encontrado
 				
+				while(isalnum(*end) || *end == '_') { // Percorre até que está encontrando letra, número ou _
+					end++;
+				}
+				// Encontrou algo diferente, saiu do while deixando o ponteiro no último caracter
+				
+				int length = end - start; // último - primeiro
+				char buffer[128]; // Declara uma string para armazenar o que achou
+				strncpy(buffer, start, length); // Coloca o que achou na string
+				buffer[length]='\0'; // Terminador de string
+				printf("Linha %d: TOKEN_WORD: %s\n", i, buffer);
+				continue;
+			}
+			
+			// Número
+			if(isdigit(*p)) {
+				const char *start = end; // Fixa o início do primeiro caracter dígito
+				
+				while(isdigit(*end)) { // Percore todos os dígitos
+					end++;
+				}
+				// Saiu deixando o ponteiro no último dígito
+				
+				int length = end - start; // último - primeiro
+				char buffer[64]; // Declara uma string para armazenar o que achou
+				strncpy(buffer, start, length); // Coloca o que achou na string
+				buffer[length] = '\0'; // Terminador
+				printf("Linha %d: TOKEN_NUMBER: %s\n", i, buffer);
+				continue;
+			}
 			
 			end++;
-				trim_string(p);
+			
 		}
 		
 		
