@@ -2,30 +2,158 @@
 
 ## Cronologia de decisões sobre o projeto
 
-1. Criar função que lê o arquivo de exemplos
-   Armazena todo o conteúdo do arquivo em uma string
-2. Separar cada linha da string lida do arquivo em um vetor de strings
-   Agora temos um `char **rows` onde a cada posição temos uma linha do código de exemplos
-3. Trimar cada linha, ou seja, remover espaços em branco no início e fim
-   Agora é possível identificar o comando que inicia a linha
-4. Fazer função que identifica linhas em branco como primeiro teste em cada linha a ser analisada (is_blank)
-   Quando encontrar linha em branco, avança direto pra próxima
-5. Fazer função que identifica quando a linha começa com comentário //
-   Quando encontrar, avança para a próxima
-6. Agora vamos pegar linha a linha e percorrer ela um caracter por vez testando o seguinte:
-   "({[" -> Abertura de escopo
-   ")}]" -> Fechamento de escopo
-   ";" -> Fim do comando
-   Alfanumérico -> Quando encontra uma letra. Avança um por vez testando se ainda é letra, ou número nesse caso, ou "\_". Esse teste cobre declaração de palavras chave e nomes de variáveis ou funções.
-7. Criar uma pilha que empilhe as aberturas de escopo. Quando encontrar um fechamento de escopo, analisar o que há dentro da pilha até a abertura daquele escopo em específico.
-   Exemplo:
-   for() { // -> abre o escopo de um for
-   if(){} // -> abre e fecha escopo de um if
-   for() {} // -> abre e fecha escopo de um for
-   } // -> fecha o escopo de um for
-   Encontrou fechamento
-8. Criar um enum com os tipos de escopo possíveis
-   BLOCK, PAREN, BRACKET, FOR, WHILE, IF, FUNCTION
+1.  Criar função que lê o arquivo de exemplos
+    Armazena todo o conteúdo do arquivo em uma string
+2.  Separar cada linha da string lida do arquivo em um vetor de strings
+    Agora temos um `char **rows` onde a cada posição temos uma linha do código de exemplos
+3.  Trimar cada linha, ou seja, remover espaços em branco no início e fim
+    Agora é possível identificar o comando que inicia a linha
+4.  Fazer função que identifica linhas em branco como primeiro teste em cada linha a ser analisada (is_blank)
+    Quando encontrar linha em branco, avança direto pra próxima
+5.  Fazer função que identifica quando a linha começa com comentário //
+    Quando encontrar, avança para a próxima
+6.  Agora vamos pegar linha a linha e percorrer ela um caracter por vez testando o seguinte:
+    "({[" -> Abertura de escopo
+    ")}]" -> Fechamento de escopo
+    ";" -> Fim do comando
+    Alfanumérico -> Quando encontra uma letra. Avança um por vez testando se ainda é letra, ou número nesse caso, ou "\_". Esse teste cobre declaração de palavras chave e nomes de variáveis ou funções.
+    Dígito -> Quando encontra de primeira um número. Avança um por testando se ainda é número.
+7.  Criar uma pilha que empilhe as aberturas de escopo. Quando encontrar um fechamento de escopo, analisar o que há dentro da pilha até a abertura daquele escopo em específico.
+    Exemplo:
+    for() { // -> abre o escopo de um for
+    if(){} // -> abre e fecha escopo de um if
+    for() {} // -> abre e fecha escopo de um for
+    } // -> fecha o escopo de um for
+    Encontrou fechamento
+8.  Criar um enum com os tipos de escopo possíveis
+    BLOCK, PAREN, BRACKET, FOR, WHILE, IF, FUNCTION
+9.  Nesse ponto aqui percebemos que a análise linha a linha tinha obstáculos complexos. Quando havia uma declaração de função por exemplo (int identificador(){}), o parser tinha que analisar o token "int" e os elementos que o seguiam para entender que era de fato uma função e não uma variável por exemplo. Muitas ou todas as vezes o "}" estava em outra linha. Essa outra linha não estava na chamada do parser. Virou um caos.
+    A partir daqui a ideia é "tokenizar" tudo. O código vai ser lido todo de uma vez só, sem quebras de linha.
+    Vamos exemplificar no seguinte código:
+
+    // comentário de exemplo
+    void bubble_sort(int arr[], int n) {
+
+        for (int i = 0; i < n - 1; i++) {
+
+            for (int j = 0; j < n - i - 1; j++) {
+
+                if (arr[j] > arr[j + 1]) {
+
+                    int temp = arr[j];
+
+                    arr[j] = arr[j + 1];
+
+                    arr[j + 1] = temp;
+
+                }
+
+            }
+
+        }
+
+    }
+
+    Esse código vira uma lista encadeada (pelo tamanho variável) de tokens. Cada token guarda seu tipo, conteúdo e linha de ocorrência. Fica mais ou menos assim (gerado pelo GPT para evitar a fadiga):
+    [
+    LINE_COMMENT, "comentário de exemplo", 1,
+    TOKEN_VOID, "void", 2,
+    IDENTIFIER, "bubble_sort", 2,
+    OPEN_PAREN, "(", 2,
+    TOKEN_INT, "int", 2,
+    IDENTIFIER, "arr", 2,
+    OPEN_BRACKET, "[", 2,
+    CLOSE_BRACKET, "]", 2,
+    SYMBOL_COMMA, ",", 2,
+    TOKEN_INT, "int", 2,
+    IDENTIFIER, "n", 2,
+    CLOSE_PAREN, ")", 2,
+    OPEN_BRACE, "{", 2,
+    TOKEN_FOR, "for", 4,
+    OPEN_PAREN, "(", 4,
+    TOKEN_INT, "int", 4,
+    IDENTIFIER, "i", 4,
+    SYMBOL_EQUALS, "=", 4,
+    NUMBER, "0", 4,
+    SYMBOL_SEMICOLON, ";", 4,
+    IDENTIFIER, "i", 4,
+    SYMBOL_LESS, "<", 4,
+    IDENTIFIER, "n", 4,
+    SYMBOL_MINUS, "-", 4,
+    NUMBER, "1", 4,
+    SYMBOL_SEMICOLON, ";", 4,
+    IDENTIFIER, "i", 4,
+    SYMBOL_PLUSPLUS, "++", 4,
+    CLOSE_PAREN, ")", 4,
+    OPEN_BRACE, "{", 4,
+    TOKEN_FOR, "for", 6,
+    OPEN_PAREN, "(", 6,
+    TOKEN_INT, "int", 6,
+    IDENTIFIER, "j", 6,
+    SYMBOL_EQUALS, "=", 6,
+    NUMBER, "0", 6,
+    SYMBOL_SEMICOLON, ";", 6,
+    IDENTIFIER, "j", 6,
+    SYMBOL_LESS, "<", 6,
+    IDENTIFIER, "n", 6,
+    SYMBOL_MINUS, "-", 6,
+    IDENTIFIER, "i", 6,
+    SYMBOL_MINUS, "-", 6,
+    NUMBER, "1", 6,
+    SYMBOL_SEMICOLON, ";", 6,
+    IDENTIFIER, "j", 6,
+    SYMBOL_PLUSPLUS, "++", 6,
+    CLOSE_PAREN, ")", 6,
+    OPEN_BRACE, "{", 6,
+    TOKEN_IF, "if", 8,
+    OPEN_PAREN, "(", 8,
+    IDENTIFIER, "arr", 8,
+    OPEN_BRACKET, "[", 8,
+    IDENTIFIER, "j", 8,
+    CLOSE_BRACKET, "]", 8,
+    SYMBOL_GREATER, ">", 8,
+    IDENTIFIER, "arr", 8,
+    OPEN_BRACKET, "[", 8,
+    IDENTIFIER, "j", 8,
+    SYMBOL_PLUS, "+", 8,
+    NUMBER, "1", 8,
+    CLOSE_BRACKET, "]", 8,
+    CLOSE_PAREN, ")", 8,
+    OPEN_BRACE, "{", 8,
+    TOKEN_INT, "int", 10,
+    IDENTIFIER, "temp", 10,
+    SYMBOL_EQUALS, "=", 10,
+    IDENTIFIER, "arr", 10,
+    OPEN_BRACKET, "[", 10,
+    IDENTIFIER, "j", 10,
+    CLOSE_BRACKET, "]", 10,
+    SYMBOL_SEMICOLON, ";", 10,
+    IDENTIFIER, "arr", 12,
+    OPEN_BRACKET, "[", 12,
+    IDENTIFIER, "j", 12,
+    CLOSE_BRACKET, "]", 12,
+    SYMBOL_EQUALS, "=", 12,
+    IDENTIFIER, "arr", 12,
+    OPEN_BRACKET, "[", 12,
+    IDENTIFIER, "j", 12,
+    SYMBOL_PLUS, "+", 12,
+    NUMBER, "1", 12,
+    CLOSE_BRACKET, "]", 12,
+    SYMBOL_SEMICOLON, ";", 12,
+    IDENTIFIER, "arr", 14,
+    OPEN_BRACKET, "[", 14,
+    IDENTIFIER, "j", 14,
+    SYMBOL_PLUS, "+", 14,
+    NUMBER, "1", 14,
+    CLOSE_BRACKET, "]", 14,
+    SYMBOL_EQUALS, "=", 14,
+    IDENTIFIER, "temp", 14,
+    SYMBOL_SEMICOLON, ";", 14,
+    CLOSE_BRACE, "}", 16,
+    CLOSE_BRACE, "}", 18,
+    CLOSE_BRACE, "}", 20,
+    CLOSE_BRACE, "}", 22,
+    ]
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 

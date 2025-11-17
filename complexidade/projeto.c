@@ -3,36 +3,50 @@
 #include <string.h>
 #include <stdbool.h>
 
-typedef enum { 
-	EOF,
-	KEYWORD,      // for, while, if, void, int, return...
-    IDENTIFIER,   // Nomes de funções, variáveis
-    SYMBOL,       // (, ), {, }, [, ], ;
-    NUMBER,       // Números
-    STRING,       // literais de string
-    COMMENT       // //
+// Enum dos tokens possíveis de ler
+typedef enum {
+    TOKEN_VOID,
+    TOKEN_INT,
+    TOKEN_FLOAT,
+    TOKEN_CHAR,
+    TOKEN_IF,
+    TOKEN_ELSE,
+    TOKEN_FOR,
+    TOKEN_WHILE,
+    TOKEN_DO,
+    TOKEN_RETURN,
+    TOKEN_BREAK,
+    TOKEN_CONTINUE,
+    TOKEN_IDENTIFIER,
+    TOKEN_NUMBER,
+    TOKEN_LBRACE,   // {
+    TOKEN_RBRACE,   // }
+    TOKEN_LPAREN,   // (
+    TOKEN_RPAREN,   // )
+    TOKEN_SEMICOLON // ;
 } TokenType;
 
-typedef struct {
-    TokenType type;
-    char *info;   // Conteúdo do token
-    int line;	// Linha do token
-} Token;
+// Função que recebe uma string do token e retorna um elemento do enum para ser usado no analyzer
+TokenType token_from_word(const char *token) {
+    if(strcmp(token, "void") == 0) return TOKEN_VOID;
+    if(strcmp(token, "int") == 0) return TOKEN_INT;
+    if(strcmp(token, "float") == 0) return TOKEN_FLOAT;
+    if(strcmp(token, "char") == 0) return TOKEN_CHAR;
+    if(strcmp(token, "if") == 0) return TOKEN_IF;
+    if(strcmp(token, "else") == 0) return TOKEN_ELSE;
+    if(strcmp(token, "for") == 0) return TOKEN_FOR;
+    if(strcmp(token, "while") == 0) return TOKEN_WHILE;
+    if(strcmp(token, "do") == 0) return TOKEN_DO;
+    if(strcmp(token, "return") == 0) return TOKEN_RETURN;
+    if(strcmp(token, "break") == 0) return TOKEN_BREAK;
+    if(strcmp(token, "continue") == 0) return TOKEN_CONTINUE;
 
-// Tipos de escopos possíveis
-typedef enum {
-    BLOCK, //{}
-    PAREN, //()
-    BRACKET, //[]
-    FOR,     
-    WHILE,
-    IF,
-    FUNCTION
-} ScopeType;
+    return TOKEN_IDENTIFIER;
+}
 
 // O tipo de escopo e a linha de início
 typedef struct {
-	ScopeType type;
+	char * type;
 	int line;
 } Scope;
 
@@ -199,7 +213,124 @@ void print_rows(char **rows, int count) {
 	}
 }
 
-void analyze_rows(char **rows, int count) {
+// Analisa o token via enum
+void analyze_token(TokenType token, int line, Stack *stack) {
+
+    switch (token) {
+
+        case TOKEN_VOID:
+        case TOKEN_INT:
+        case TOKEN_FLOAT:
+        case TOKEN_CHAR: { // Pode ser declaração de variável ou início de função
+            Scope s;
+            s.type = "function_candidate";
+            s.line = line;
+            push(stack, s);
+            break;
+        }
+
+        case TOKEN_IDENTIFIER: {
+            // Se o topo da pilha for function_candidate,
+            // identificador é o nome da função
+            Scope *top = peek(stack);
+            if (top && strcmp(top->type, "function_candidate") == 0) {
+                printf("[DEBUG] function name '%s' at line %d\n", lexeme, line);
+            }
+            break;
+        }
+
+        case TOKEN_LPAREN: {
+            Scope *top = peek(stack);
+            if (top && strcmp(top->type, "function_candidate") == 0) {
+                printf("[DEBUG] parameters start for function at line %d\n", line);
+            }
+            break;
+        }
+
+        case TOKEN_LBRACE: {
+            Scope *top = peek(stack);
+
+            if (top && strcmp(top->type, "function_candidate") == 0) {
+                // Agora virou função de verdade
+                pop(stack);
+
+                Scope s;
+                s.type = "function";
+                s.line = line;
+                push(stack, s);
+
+                printf("[DEBUG] FUNCTION BLOCK opened at line %d\n", line);
+            }
+            else {
+                // É só um bloco normal
+                Scope s;
+                s.type = "block";
+                s.line = line;
+                push(stack, s);
+
+                printf("[DEBUG] BLOCK opened at line %d\n", line);
+            }
+            break;
+        }
+
+        case TOKEN_RBRACE: {
+            if (!is_empty(stack)) {
+                Scope s = pop(stack);
+                printf("[DEBUG] BLOCK closed (%s) started at line %d, closed at %d\n",
+                       s.type, s.line, line);
+            } else {
+                printf("[DEBUG] ERROR: unmatched '}' at line %d\n", line);
+            }
+            break;
+        }
+
+        case TOKEN_FOR: {
+            Scope s;
+            s.type = "for";
+            s.line = line;
+            push(stack, s);
+
+            printf("[DEBUG] FOR detected at line %d\n", line);
+            break;
+        }
+
+        case TOKEN_WHILE: {
+            Scope s;
+            s.type = "while";
+            s.line = line;
+            push(stack, s);
+
+            printf("[DEBUG] WHILE detected at line %d\n", line);
+            break;
+        }
+
+        case TOKEN_IF: {
+            Scope s;
+            s.type = "if";
+            s.line = line;
+            push(stack, s);
+
+            printf("[DEBUG] IF detected at line %d\n", line);
+            break;
+        }
+
+        case TOKEN_DO: {
+            Scope s;
+            s.type = "do";
+            s.line = line;
+            push(stack, s);
+
+            printf("[DEBUG] DO detected at line %d\n", line);
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
+
+void analyze_rows(char **rows, int count, Stack * stack) {
 	for(int i = 0; i < count; i++) {
 		if(is_blank(rows[i])) // Se a linha está em branco, pula
 			continue;
@@ -256,6 +387,7 @@ void analyze_rows(char **rows, int count) {
 				char buffer[128]; // Declara uma string para armazenar o que achou
 				strncpy(buffer, start, length); // Coloca o que achou na string
 				buffer[length]='\0'; // Terminador de string
+				
 				printf("Linha %d: TOKEN_WORD: %s\n", i, buffer);
 				continue;
 			}
@@ -273,6 +405,7 @@ void analyze_rows(char **rows, int count) {
 				char buffer[64]; // Declara uma string para armazenar o que achou
 				strncpy(buffer, start, length); // Coloca o que achou na string
 				buffer[length] = '\0'; // Terminador
+				analyze_token(buffer, i, stack);
 				printf("Linha %d: TOKEN_NUMBER: %s\n", i, buffer);
 				continue;
 			}
@@ -291,6 +424,7 @@ void analyze_rows(char **rows, int count) {
 
 int main()
 {
+	Stack * stack = create_stack();
 	char *src = read_file("exemplosTeste.c");
 	if(!src) {
 		printf("Erro ao abrir arquivo de exemplos");
@@ -302,7 +436,7 @@ int main()
 	split_rows(src, &rows, &count);
 	trim_rows(rows, count);
 	
-	analyze_rows(rows, count);
+	analyze_rows(rows, count, stack);
 	
 	
 	
