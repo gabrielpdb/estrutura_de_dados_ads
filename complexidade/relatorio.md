@@ -227,6 +227,8 @@
       Faz sentido então iniciar a busca pelo primeiro "(". Depois analisamos o elemento imediatamente anterior e então definimos que estrutura é. Definida a estrutura, temos uma estrutura de pilha já estruturada e fazemos o push no início da estrutura "{". Nesse ponto do desenvolvimento vamos implementar os 6 algoritmos de ordenação para testar se a pilha está funcionando. O retorno da impressão da pilha pós análise dos tokens deve conter, em ordem, a declaração da função e as estruturas de repetição e condição presentes em seu interior. Isso deve se repetir para cada função presente no arquivo.
 
 11. Tivemos o retorno esperado, mas ele não é suficiente para a análise de algoritmos mais complexos, com chamadas de outras funções por exemplo.
+12. Decidimos separar cada algoritmo em um arquivo a parte e fazer o programa abrir um por vez. Isso principalmente por causa dos algoritmos que demandam duas funções.
+13. Agora vamos criar uma struct para armazenar os dados das funções que encontrarmos na análise do código. Isso estava faltando pois não tínhamos controle sobre qual função estava em execução e qual chamava outra ou a si mesmo.
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
