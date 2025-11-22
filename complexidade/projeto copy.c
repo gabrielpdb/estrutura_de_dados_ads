@@ -645,7 +645,6 @@ Token *cur = list->head;
     while (cur != NULL) {
     	if(cur->type == OPEN_PAREN) {
     		Token *prev = cur->prev;
-    		
 
     		switch(prev->type) {
     			case TOKEN_IDENTIFIER: {
@@ -660,7 +659,6 @@ Token *cur = list->head;
     					}
 
     					currentFunction = malloc(sizeof(FunctionData));
-    					memset(currentFunction, 0, sizeof(FunctionData));
     					strcpy(currentFunction->name, prev->text);
     					currentFunction->startLine = prev->line;
 
@@ -747,22 +745,27 @@ Token *cur = list->head;
     			resetFunctionData(currentFunction);
     		}
 
+    		printf("CLOSE_BRACE_TOKEN_TYPE: %s\n", tokenTypeToString(peek_scope->type));
     		pop(stack);
+
+
     	}
+
+    	printf("CUR: %s\n", cur->text);
     	cur = cur->next; // Próximo
     }
 
 }
 
 int main() {
-	const char *files[] = { // Arquivos a serem lidos
-		"linear_search.c",
-		"bubble_sort.c",
-		"merge_sort.c",
-		"binary_search.c",
-		"fibonacci.c",
-		"triple_loop.c"
-	};
+const char *files[] = { // Arquivos a serem lidos
+"linear_search.c",
+"bubble_sort.c",
+"merge_sort.c",
+"binary_search.c",
+"fibonacci.c",
+"triple_loop.c"
+};
 
     int totalFiles = sizeof(files) / sizeof(files[0]);
 
@@ -791,6 +794,7 @@ int main() {
 
     	system("pause");   // só no Windows
     	printf("\n\n");
+    	system("cls");
 
     	freeTokenList(&tokenList);
     	freeFunctionDataList(&functionList);

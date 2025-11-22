@@ -335,8 +335,7 @@ void freeFunctionDataList(FunctionDataList *list) {
 FunctionData *f = list->head;
 while (f) {
 FunctionData \*next = f->next;
-free(f->name);
-free(f);
+free(f); // somente isso!
 f = next;
 }
 }
@@ -1033,6 +1032,7 @@ const char \*files[] = { // Arquivos a serem lidos
     	system("cls");
 
     	freeTokenList(&tokenList);
+    	//freeFunctionDataList(&functionList);
     }
 
     return 0;
