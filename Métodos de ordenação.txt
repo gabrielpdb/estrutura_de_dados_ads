@@ -1,0 +1,20 @@
+Ordenação por inserção
+
+	O pior caso são 10 deslocamentos. O melhor caso é 0.
+	A ordenação por inserção é estável
+
+Ordenação por seleção
+	
+	O melhor e o pior caso são iguais
+	A ordenação por seleção não é estável
+
+Bubble sort
+
+	O melhor caso é 0 e o pior para 5 posições é 10
+	Esse bubble sort apresentado pode ser melhorado utilizando uma flag para monitorar se houve alguma troca de posição no for interno. Se não houver troca no loop interno, o vetor está ordenado e o loop externo não precisa continuar. Reduz a complexidade de O(n²) para O(n).
+	O BubbleSort é estável
+
+Merge Sort
+
+	A complexidade é igual no melhor e pior caso
+	Ele é estável

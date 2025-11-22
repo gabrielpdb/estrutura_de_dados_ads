@@ -786,12 +786,11 @@ int main() {
     	tokenize(src, &tokenList);
     	parse(&tokenList, stack, &functionList);
 
-    	printStack(stack);
     	printFunctionDataList(&functionList);
 
     	system("pause");   // só no Windows
-    	printf("\n\n");
-
+		system("cls");
+		
     	freeTokenList(&tokenList);
     	freeFunctionDataList(&functionList);
     }

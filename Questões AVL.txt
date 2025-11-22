@@ -1,0 +1,68 @@
+1 - Por que devemos balancear uma árvore binária?
+	Para evitar que, caso os dados sejam inseridos ordenadamente, ela se comporte como uma lista encadeada, o que gera maior número de interações para realizar buscas. O balanceamento também reduz uma altura desnecessária, e, fazendo isso, o número máximo de interações (altura) também diminui para realizar uma busca.
+
+2 - Quais são os processos de balanceamento de uma árvore binária?
+	RSE -> Rotação Simples à Esquerda
+	RSD -> Rotação Simples à Direita
+	RDE -> Rotação Dupla à Esquerda
+	RDD -> Rotação Dupla à Direita
+
+3 - Qual a diferença entre a rotação simples e a rotação dupla, quando cada uma é utilizada?
+	A rotação simples consiste em uma única rotação e é utilizada quando o nó filho tem FB de mesmo sinal ao nó pai, ou seja, o desbalanceamento é uma reta.
+	A rotação dupla consiste em duas rotações simples e é utilizada quando o nó filho tem FB de sinal diferente ao nó pai, ou seja, o desbalanceamento é um "joelho".
+
+4 -  Quando temos um fator de balanceamento maior que 1 positivo e o filho à esquerda tem fator de balanceamento positivo, qual o método de rotação que deve ser aplicado?
+	Rotação Simples à Direita
+
+5 -  Quando temos um fator de balanceamento maior que 1 negativo e o filho à direita tem fator de balanceamento negativo, qual o método de rotação que deve ser aplicado?
+	Rotação Simples à Esquerda
+
+6 -  Quando temos um fator de balanceamento maior que 1 positivo e o filho à esquerda tem fator de balanceamento negativo, qual o método de rotação que deve ser aplicado?
+	Rotação Dupla à Direita
+
+7 -  Quando temos um fator de balanceamento maior que 1 negativo e o filho à direita tem fator de balanceamento positivo, qual o método de rotação que deve ser aplicado?
+	Rotação Dupla à Esquerda	
+
+8 - Mostre os passos, um a um, para construir uma árvore binária de pesquisa balanceada. Assim, você deve balancear sempre que necessário, indicando o fatores de balanceamento (FB) e método de rotação utilizado (RSE, RSD, RDE, RDD), para incluir os seguintes elementos (um a um, apenas uma vez cada um): 20 - 32 - 54 - 15 - 13 - 72 - 64 - 14 - 18 - 25 - 19
+	Inserir 20
+	Inserir 32 à direita do 20
+	Inserir 54 à direita do 32
+	20 -> FB = -2
+	32 -> FB = -1
+	54 -> FB = 0
+	RSE no 20
+	Inserir 15 à esquerda do 20
+	Inserir 13 à esquerda do 15
+	32 -> FB = 2
+	20 -> FB = -2
+	15 -> FB = -1
+	13 -> FB = 0
+	54 -> FB = 0
+	RSD no 20
+	Inserir 72 à direita do 54
+	Inserir 64 à esquerda do 72
+	32 -> FB = -1
+	20 -> FB = 0
+	15 -> FB = 0
+	13 -> FB = 0
+	54 -> FB = -2
+	72 -> FB = 1
+	64 -> FB = 0
+	RSD no 72
+	RSE no 54
+	Inserir 14 à direita do 13
+	Inserir 18 à esquerda do 20
+	Inserir 25 à direita do 20
+	Inserir 19 à direita do 18
+	32 -> FB = 2
+	15 -> FB = -1
+	13 -> FB = -1
+	14 -> FB = 0
+	20 -> FB = 1
+	18 -> FB = -1
+	19 -> FB = 0
+	54 -> FB = 0
+	72 -> FB = 0
+	64 -> FB = 0
+	RSE no 15
+	RSD no 32
