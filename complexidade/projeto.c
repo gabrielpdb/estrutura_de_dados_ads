@@ -18,6 +18,8 @@ typedef enum {
     TOKEN_IF,
     TOKEN_ELSE,
     TOKEN_RETURN,
+    TOKEN_FUNCTION,
+    TOKEN_FUNCTION_CALL,
 
     OPEN_PAREN,     // (
     CLOSE_PAREN,    // )
@@ -46,9 +48,11 @@ typedef enum {
 const char* tokenTypeToString(TokenType type) {
     switch (type) {
         case TOKEN_IDENTIFIER:      return "IDENTIFIER";
+        case TOKEN_FUNCTION:		return "FUNCTION";
+        case TOKEN_FUNCTION_CALL:		return "FUNCTION_CALL";
         case TOKEN_NUMBER:          return "NUMBER";
         case TOKEN_STRING:          return "STRING";
-
+        
         case TOKEN_VOID:            return "VOID";
         case TOKEN_INT:             return "INT";
         case TOKEN_FLOAT:           return "FLOAT";
@@ -151,10 +155,9 @@ void printTokenList(TokenList *list) {
     }
 }
 
-
 // O tipo de escopo e a linha de início
 typedef struct {
-	char * type;
+	TokenType type;
 	int line;
 } Scope;
 
@@ -206,6 +209,28 @@ Scope *peek(Stack *s) {
 	return &s->first->info; // Retorna info do primeiro
 }
 
+// Imprime a pilha
+void printStack(Stack *s) {
+    Node *cur = s->first;
+
+    printf("\n=== STACK CONTENT ===\n");
+
+    if (!cur) {
+        printf("(vazia)\n");
+        return;
+    }
+
+    while (cur != NULL) {
+        printf("Scope: %-18s  Line: %d\n",
+               tokenTypeToString(cur->info.type),
+               cur->info.line);
+        cur = cur->next;
+    }
+
+    printf("======================\n\n");
+}
+
+
 // Ver se a pilha está vazia
 bool is_empty(Stack *s) {
     return s->first == NULL;
@@ -250,7 +275,6 @@ TokenType string_to_token(char buffer[128]) {
     // Se não é keyword é Identifier
     return TOKEN_IDENTIFIER;
 }
-
 
 // Função que recebe o código bruto inteiro e converte para lista de tokens
 void tokenize(const char *src, TokenList *list) {
@@ -423,6 +447,68 @@ void tokenize(const char *src, TokenList *list) {
 	}
 }
 
+void parse (TokenList *list, Stack *stack) {
+	Token *cur = list->head;
+	
+	while (cur != NULL) {
+		if(cur->type == OPEN_PAREN) {	
+			Token *prev = cur->prev;
+			
+			switch(prev->type) {
+				case TOKEN_IDENTIFIER: {
+					
+					if(prev->prev->type == TOKEN_VOID || prev->prev->type == TOKEN_INT ||prev->prev->type == TOKEN_FLOAT || prev->prev->type == TOKEN_CHAR) { // Se antes do IDENTIFICADOR for algum tipo de função, é função
+						
+						while(cur->type != OPEN_BRACE) { // Avança até o "{"
+							cur = cur->next;
+						}
+						Scope scope = {.type = TOKEN_FUNCTION, .line = prev->line}; // Cria o escopo
+						push(stack, scope); // Empilha o escopo
+						
+					} else { // FUNCTION CALL
+						Token *p = cur;
+						
+						while(p->type != CLOSE_PAREN) { // Avança até o ")"
+							p = p->next;
+						}
+						
+						Scope scope = {.type = TOKEN_FUNCTION_CALL, .line = p->line}; // Cria o escopo
+						push(stack, scope); // Empilha o escopo
+						
+						cur = p; // Traz o cur para o ")"
+					}
+					break;
+				}
+				case TOKEN_FOR: {
+					while(cur->type != OPEN_BRACE) {
+						cur = cur->next;
+					}
+					push(stack, (Scope){TOKEN_FOR, prev->line}); // Empilha o FOR
+					break;
+				}
+				case TOKEN_WHILE: {
+					while(cur->type != OPEN_BRACE) {
+						cur = cur->next;
+					}
+					push(stack, (Scope){TOKEN_WHILE, prev->line}); // Empilha o WHILE
+					break;
+				}
+				case TOKEN_IF: {
+					while(cur->type != OPEN_BRACE) {
+						cur = cur->next;
+					}
+					push(stack, (Scope){TOKEN_IF, prev->line}); // Empilha o WHILE
+					break;
+				}
+					
+			}
+		}
+		
+		
+		cur = cur->next; // Próximo
+	}
+}
+
 int main()
 {
 	Stack * stack = create_stack();
@@ -439,6 +525,11 @@ int main()
 	system("pause");
 	printTokenList(&tokenList);
 	system("pause");
+	
+	parse(&tokenList, stack);
+	
+	printStack(stack);
+	
 	
 	return 0;
 }

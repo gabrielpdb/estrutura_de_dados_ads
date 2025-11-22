@@ -155,6 +155,79 @@
     CLOSE_BRACE, "}", 22,
     ]
 
+10. Agora vamos começar a analisar os tokens para identificar estruturas do tipo: funções, laços (for, while), if else, chamadas de funções. Identificamos que normalmente todas essas estruturas tem em comum pelo menos uma abertura de escopo, seja com parênteses ou chaves. A seguir as estruturas comuns:
+
+    - Declaração de FUNCTION:
+      TOKEN\_<RETORNO>
+      IDENTIFIER
+      OPEN_PAREN
+      <DECLARAÇÕES DE VARIÁVEIS OU NÃO>
+      CLOSE_PAREN
+      OPEN_BRACE
+      <CONTEÚDO DA FUNÇÃO>
+      CLOSE_BRACE
+    - Declaração de FUNCTION CALL:
+      IDENTIFIER
+      OPEN_PAREN
+      <PARÂMETROS>
+      CLOSE_PAREN
+      SYMBOL_SEMICOLON
+    - Declaração de FOR:
+      TOKEN_FOR
+      OPEN_PAREN
+      <DECLARAÇÕES DO FOR>
+      CLOSE_PAREN
+      OPEN_BRACE
+      <CONTEÚDO DO FOR>
+      CLOSE_BRACE
+    - Declaração de WHILE:
+      TOKEN_WHILE
+      OPEN_PAREN
+      <CONDIÇÃO DO WHILE>
+      CLOSE_PAREN
+      OPEN_BRACE
+      <CONTEÚDO DO WHILE>
+      CLOSE_BRACE
+    - Declaração de IF:
+      TOKEN_IF
+      OPEN_PAREN
+      <CONDIÇÕES DO IF>
+      CLOSE_PAREN
+      OPEN_BRACE
+      <CONTEÚDO DO IF>
+      CLOSE_BRACE
+    - Declaração de IF ELSE:
+      TOKEN_IF
+      OPEN_PAREN
+      <CONDIÇÕES DO IF>
+      CLOSE_PAREN
+      OPEN_BRACE
+      <CONTEÚDO DO IF>
+      CLOSE_BRACE
+      TOKEN_ELSE
+      OPEN_BRACE
+      <CONTEÚDO DO ELSE>
+      CLOSE_BRACE
+    - Declaração de IF ELSE IF:
+      TOKEN_IF
+      OPEN_PAREN
+      <CONDIÇÕES DO IF>
+      CLOSE_PAREN
+      OPEN_BRACE
+      <CONTEÚDO DO IF>
+      CLOSE_BRACE
+      TOKEN_ELSE
+      TOKEN_IF
+      OPEN_BRACE
+      <CONTEÚDO DO ELSE IF>
+      CLOSE_BRACE
+
+      - Note que não estamos tratando DO WHILE nesse caso para simplificar a abordagem. Nem SWITCH CASE, pelo mesmo motivo.
+
+      Faz sentido então iniciar a busca pelo primeiro "(". Depois analisamos o elemento imediatamente anterior e então definimos que estrutura é. Definida a estrutura, temos uma estrutura de pilha já estruturada e fazemos o push no início da estrutura "{". Nesse ponto do desenvolvimento vamos implementar os 6 algoritmos de ordenação para testar se a pilha está funcionando. O retorno da impressão da pilha pós análise dos tokens deve conter, em ordem, a declaração da função e as estruturas de repetição e condição presentes em seu interior. Isso deve se repetir para cada função presente no arquivo.
+
+11. Tivemos o retorno esperado, mas ele não é suficiente para a análise de algoritmos mais complexos, com chamadas de outras funções por exemplo.
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 void scan_line(const char *line, int lineno) {
