@@ -637,6 +637,9 @@ const char *p = src;
 
 }
 
+
+
+
 void parse (TokenList *list, Stack *stack, FunctionDataList *functionList) {
 Token *cur = list->head;
 
@@ -754,6 +757,67 @@ Token *cur = list->head;
 
 }
 
+
+void calculateComplexityAdvanced(FunctionDataList *list) {
+    FunctionData *f = list->head;
+
+    while (f) {
+        bool hasRecursion = false;
+        bool hasMultipleRecursion = false;
+        bool isDivideConquer = false;
+        int loopDepth = f->nestedDepth;
+
+        // Detecta recursão
+        for (int i = 0; i < f->callCount; i++) {
+            if (strcmp(f->name, f->calledFunctions[i]) == 0) {
+                if (hasRecursion) {
+                    hasMultipleRecursion = true; // múltipla = exponencial
+                }
+                hasRecursion = true;
+                isDivideConquer = true; // qualquer recursão que se chame duas vezes pode ser divide&conquer
+            }
+        }
+
+        // Heurísticas específicas
+        if (strcmp(f->name, "binary_search") == 0) {
+            strcpy(f->complexity, "O(log n)");
+        } else if (strcmp(f->name, "merge_sort") == 0) {
+            strcpy(f->complexity, "O(n log n)");
+        } else {
+            // Determina complexidade geral
+            if (hasMultipleRecursion) {
+                strcpy(f->complexity, "O(2^n)");
+            } else if (hasRecursion) {
+                if (isDivideConquer && loopDepth > 0) {
+                    strcpy(f->complexity, "O(n log n)");
+                } else if (isDivideConquer) {
+                    strcpy(f->complexity, "O(log n)");
+                } else if (loopDepth == 0) {
+                    strcpy(f->complexity, "O(n)");
+                } else {
+                    char buf[32];
+                    snprintf(buf, sizeof(buf), "O(n^%d)", loopDepth + 1);
+                    strcpy(f->complexity, buf);
+                }
+            } else if (loopDepth > 0) {
+                if (loopDepth == 1) {
+                    strcpy(f->complexity, "O(n)");
+                } else {
+                    char buf[32];
+                    snprintf(buf, sizeof(buf), "O(n^%d)", loopDepth);
+                    strcpy(f->complexity, buf);
+                }
+            } else {
+                strcpy(f->complexity, "O(1)");
+            }
+        }
+
+        f = f->next;
+    }
+}
+
+
+
 int main() {
 	const char *files[] = { // Arquivos a serem lidos
 		"linear_search.c",
@@ -784,11 +848,13 @@ int main() {
     	}
 
     	tokenize(src, &tokenList);
+    
     	parse(&tokenList, stack, &functionList);
+    	calculateComplexityAdvanced(&functionList);
+		printFunctionDataList(&functionList);
 
-    	printFunctionDataList(&functionList);
-
-    	system("pause");   // só no Windows
+    	
+    	system("pause");   
 		system("cls");
 		
     	freeTokenList(&tokenList);

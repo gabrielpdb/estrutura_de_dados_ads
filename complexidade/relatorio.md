@@ -230,6 +230,7 @@
 12. Decidimos separar cada algoritmo em um arquivo a parte e fazer o programa abrir um por vez. Isso principalmente por causa dos algoritmos que demandam duas funções.
 13. Agora vamos criar uma lista para armazenar os dados das funções que encontrarmos na análise do código. Isso estava faltando pois não tínhamos controle sobre qual função estava em execução e qual chamava outra ou a si mesmo.
 14. Durante a leitura dos tokens, quando encontramos uma declaração de função, armazenamos ela como uma variável dentro da leitura, guardando seu nome e a linha de início. Conforme vamos identificando outros elementos dentro dessa função (ainda não encontramos o fechamento do escopo de função), vamos empilhando e desempilhando escopos (if, for e while). Toda vez que o escopo é for ou while, calculamos a profundidade da pilha de escopos e se ela for maior do que a função atual em análise, incrementamos isso na função. Quando chegamos no fim da função, ou seja, o peek da pilha de escopos é um TOKEN_FUNCTION, setamos a endLine da função, calculamos a complexidade (ainda não implementado) e jogamos ela na lista de funções.
+15. Ainda com a leitura dentro da função, também identificamos FUNCTION CALL, ou seja, quando uma função é chamada, seja ela recursiva ou não. Quando encontramos, armazenamos essa informação na função em análise, a quantidade de vezes e o nome de cada função chamada. Depois, podemos dizer se é recursivo quando o nome da função chamada for o mesmo da função de análise.
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1032,7 +1033,7 @@ const char \*files[] = { // Arquivos a serem lidos
     	system("cls");
 
     	freeTokenList(&tokenList);
-    	//freeFunctionDataList(&functionList);
+    	freeFunctionDataList(&functionList);
     }
 
     return 0;
